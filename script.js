@@ -1,86 +1,75 @@
-window.onload = function () {
+let scene, camera, renderer, sphere;
+let velocity, angle;
+let t = 0;
+let animationActive = false;
 
-    const canvas = document.getElementById("canvas");
-    const ctx = canvas.getContext("2d");
+init();
 
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+function init() {
 
-    window.simulate = function () {
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x000011);
 
-        const v = parseFloat(document.getElementById("velocity").value);
-        const angleDeg = parseFloat(document.getElementById("angle").value);
-        const angle = angleDeg * Math.PI / 180;
+    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.set(0, 30, 60);
+
+    renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.shadowMap.enabled = true;
+    document.body.appendChild(renderer.domElement);
+
+    // Ground
+    const groundGeometry = new THREE.PlaneGeometry(200, 200);
+    const groundMaterial = new THREE.MeshStandardMaterial({ color: 0x228B22 });
+    const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+    ground.rotation.x = -Math.PI / 2;
+    ground.receiveShadow = true;
+    scene.add(ground);
+
+    // Light
+    const light = new THREE.DirectionalLight(0xffffff, 1);
+    light.position.set(10, 50, 20);
+    light.castShadow = true;
+    scene.add(light);
+
+    const ambient = new THREE.AmbientLight(0x404040);
+    scene.add(ambient);
+
+    // Sphere
+    const geometry = new THREE.SphereGeometry(2, 32, 32);
+    const material = new THREE.MeshStandardMaterial({ color: 0x00ffff });
+    sphere = new THREE.Mesh(geometry, material);
+    sphere.castShadow = true;
+    scene.add(sphere);
+
+    document.getElementById("launchBtn").addEventListener("click", launch);
+
+    animate();
+}
+
+function launch() {
+    velocity = parseFloat(document.getElementById("velocity").value);
+    angle = parseFloat(document.getElementById("angle").value) * Math.PI / 180;
+    t = 0;
+    animationActive = true;
+}
+
+function animate() {
+    requestAnimationFrame(animate);
+
+    if (animationActive) {
         const g = 9.8;
 
-        const totalTime = (2 * v * Math.sin(angle)) / g;
-        const maxHeight = (v * v * Math.sin(angle) ** 2) / (2 * g);
-        const range = (v * v * Math.sin(2 * angle)) / g;
+        const x = velocity * Math.cos(angle) * t;
+        const y = velocity * Math.sin(angle) * t - 0.5 * g * t * t;
 
-        document.getElementById("range").innerText = "Range: " + range.toFixed(2) + " m";
-        document.getElementById("height").innerText = "Max Height: " + maxHeight.toFixed(2) + " m";
-        document.getElementById("time").innerText = "Time of Flight: " + totalTime.toFixed(2) + " s";
-
-        let t = 0;
-        const scale = 6;
-
-        const startX = 150;
-        const groundY = canvas.height - 100;
-
-        function drawBackground() {
-            const sky = ctx.createLinearGradient(0, 0, 0, canvas.height);
-            sky.addColorStop(0, "#001f3f");
-            sky.addColorStop(1, "#0074D9");
-            ctx.fillStyle = sky;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            ctx.fillStyle = "#2ECC40";
-            ctx.fillRect(0, groundY, canvas.width, 100);
+        if (y >= 0) {
+            sphere.position.set(x, y, 0);
+            t += 0.05;
+        } else {
+            animationActive = false;
         }
+    }
 
-        function draw() {
-            drawBackground();
-
-            const x = v * Math.cos(angle) * t;
-            const y = v * Math.sin(angle) * t - 0.5 * g * t * t;
-
-            if (y < 0) return;
-
-            const drawX = startX + x * scale;
-            const drawY = groundY - y * scale;
-
-            // Draw trajectory trail
-            ctx.beginPath();
-            ctx.strokeStyle = "rgba(255,255,255,0.4)";
-            ctx.moveTo(startX, groundY);
-            for (let time = 0; time <= t; time += 0.05) {
-                let tx = v * Math.cos(angle) * time;
-                let ty = v * Math.sin(angle) * time - 0.5 * g * time * time;
-                if (ty >= 0)
-                    ctx.lineTo(startX + tx * scale, groundY - ty * scale);
-            }
-            ctx.stroke();
-
-            // Glow projectile
-            ctx.shadowBlur = 25;
-            ctx.shadowColor = "cyan";
-
-            const gradient = ctx.createRadialGradient(drawX, drawY, 2, drawX, drawY, 12);
-            gradient.addColorStop(0, "white");
-            gradient.addColorStop(1, "cyan");
-
-            ctx.fillStyle = gradient;
-            ctx.beginPath();
-            ctx.arc(drawX, drawY, 10, 0, Math.PI * 2);
-            ctx.fill();
-
-            t += 0.03;
-            requestAnimationFrame(draw);
-        }
-
-        draw();
-    };
-
-    document.getElementById("launchBtn").addEventListener("click", simulate);
-
-};
+    renderer.render(scene, camera);
+}

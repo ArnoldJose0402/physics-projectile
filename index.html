@@ -3,34 +3,50 @@
 
 <head>
     <title>3D Projectile Motion Simulator</title>
-    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: #000;
+        }
+
+        #panel {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            color: white;
+            font-family: sans-serif;
+        }
+
+        input {
+            margin: 5px 0;
+        }
+
+        button {
+            margin-top: 10px;
+            padding: 8px;
+        }
+    </style>
 </head>
 
 <body>
 
-    <div class="panel">
-        <h1>Projectile Motion Simulator</h1>
-
-        <div class="controls">
-            <label>Velocity (m/s)</label>
-            <input type="number" id="velocity" value="25">
-
-            <label>Angle (degrees)</label>
-            <input type="number" id="angle" value="45">
-
-            <button id="launchBtn">Launch</button>
-        </div>
-
-        <div class="stats">
-            <p id="range"></p>
-            <p id="height"></p>
-            <p id="time"></p>
-        </div>
+    <div id="panel">
+        <h3>3D Projectile</h3>
+        Velocity <br>
+        <input type="number" id="velocity" value="30"><br>
+        Angle <br>
+        <input type="number" id="angle" value="45"><br>
+        <button id="launchBtn">Launch</button>
     </div>
 
-    <canvas id="canvas"></canvas>
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="script.js"></script>
+
 </body>
 
 </html>
